@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>mys7icfox ~ $</title>
+<meta name="description" content="mys7icfox — novice software engineer. Projects and contact.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0a12;
+    --bg-2: #12101d;
+    --panel: rgba(20, 17, 33, 0.82);
+    --border: #2a2540;
+    --text: #d8d4ea;
+    --muted: #7d7799;
+    --pink: #ff5fa2;
+    --cyan: #5ff2ff;
+    --purple: #b48cff;
+    --green: #8cff9e;
+    --yellow: #ffd76a;
+    --mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Menlo, monospace;
+    --jp: "Noto Sans JP", sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ---------- background layers ---------- */
+  .bg-grid {
+    position: fixed; inset: 0; z-index: -3;
+    background:
+      radial-gradient(ellipse at 15% 10%, rgba(255, 95, 162, 0.16), transparent 50%),
+      radial-gradient(ellipse at 85% 90%, rgba(95, 242, 255, 0.12), transparent 50%),
+      linear-gradient(rgba(180, 140, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(180, 140, 255, 0.05) 1px, transparent 1px),
+      var(--bg);
+    background-size: auto, auto, 40px 40px, 40px 40px, auto;
+  }
+
+  .bg-kana {
+    position: fixed; z-index: -2;
+    top: 50%; right: 2vw;
+    transform: translateY(-50%);
+    writing-mode: vertical-rl;
+    font-family: var(--jp);
+    font-weight: 900;
+    font-size: clamp(60px, 11vw, 150px);
+    letter-spacing: 0.05em;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255, 95, 162, 0.13);
+    user-select: none;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .scanlines {
+    position: fixed; inset: 0; z-index: 50; pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,0.12) 3px
+    );
+  }
+
+  /* ---------- top bar (polybar / i3 style) ---------- */
+  .bar {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    padding: 6px 16px;
+    background: rgba(11, 10, 18, 0.9);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .workspaces { display: flex; gap: 4px; flex-wrap: wrap; }
+  .workspaces a {
+    color: var(--muted);
+    text-decoration: none;
+    padding: 2px 10px;
+    border-radius: 3px;
+    transition: color .2s, background .2s;
+  }
+  .workspaces a:hover { color: var(--text); background: var(--bg-2); }
+  .workspaces a.active { color: var(--bg); background: var(--pink); font-weight: 700; }
+  .workspaces .jp { font-family: var(--jp); }
+  .bar-right { display: flex; gap: 14px; color: var(--muted); white-space: nowrap; }
+  .bar-right .accent { color: var(--cyan); }
+
+  /* ---------- window ---------- */
+  main {
+    max-width: 880px;
+    margin: 48px auto 64px;
+    padding: 0 16px;
+  }
+
+  .window {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow:
+      0 0 0 1px rgba(255, 95, 162, 0.08),
+      0 20px 60px rgba(0, 0, 0, 0.6),
+      0 0 80px rgba(255, 95, 162, 0.06);
+    overflow: hidden;
+  }
+
+  .titlebar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .dot.r { background: #ff5f87; }
+  .dot.y { background: #ffd76a; }
+  .dot.g { background: #8cff9e; }
+  .titlebar .title { margin-left: auto; margin-right: auto; padding-right: 52px; }
+
+  .term { padding: 24px 24px 28px; }
+
+  .prompt { margin-top: 26px; word-break: break-word; }
+  .prompt:first-child { margin-top: 0; }
+  .prompt .user { color: var(--pink); font-weight: 700; }
+  .prompt .host { color: var(--purple); font-weight: 700; }
+  .prompt .path { color: var(--cyan); }
+  .prompt .cmd  { color: var(--text); }
+
+  .output { margin-top: 10px; }
+
+  .cursor {
+    display: inline-block;
+    width: 9px; height: 1.1em;
+    background: var(--pink);
+    vertical-align: text-bottom;
+    animation: blink 1s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ---------- neofetch block ---------- */
+  .fetch {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 28px;
+    align-items: center;
+  }
+  .fetch pre {
+    font-family: var(--mono);
+    color: var(--pink);
+    line-height: 1.25;
+    text-shadow: 0 0 12px rgba(255, 95, 162, 0.45);
+    margin: 0;
+  }
+  .fetch-info .head {
+    font-weight: 700;
+  }
+  .fetch-info .head .u { color: var(--pink); }
+  .fetch-info .head .h { color: var(--purple); }
+  .fetch-info .rule { color: var(--muted); }
+  .fetch-info .k { color: var(--cyan); font-weight: 700; }
+  .swatches { display: flex; gap: 0; margin-top: 10px; }
+  .swatches span { width: 26px; height: 14px; }
+
+  .bio {
+    margin-top: 20px;
+    padding: 14px 16px;
+    border-left: 3px solid var(--pink);
+    background: rgba(255, 95, 162, 0.06);
+    border-radius: 0 6px 6px 0;
+  }
+  .bio .jp {
+    display: block;
+    font-family: var(--jp);
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ---------- projects ---------- */
+  .ls-head { color: var(--muted); font-size: 13px; }
+
+  .projects {
+    list-style: none;
+    display: grid;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .project a {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: rgba(18, 16, 29, 0.6);
+    color: inherit;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s, transform .2s, background .2s;
+  }
+  .project a::before {
+    content: "";
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(var(--pink), var(--cyan));
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform .25s ease;
+  }
+  .project a:hover,
+  .project a:focus-visible {
+    border-color: var(--pink);
+    background: rgba(255, 95, 162, 0.07);
+    transform: translateX(4px);
+    outline: none;
+  }
+  .project a:hover::before,
+  .project a:focus-visible::before { transform: scaleY(1); }
+
+  .perm { color: var(--muted); font-size: 12px; }
+  .pname { color: var(--text); font-weight: 700; }
+  .prepo { display: block; color: var(--muted); font-size: 12px; word-break: break-all; }
+  .arrow { color: var(--cyan); transition: transform .2s; }
+  .project a:hover .arrow { transform: translateX(3px); }
+
+  /* ---------- contact ---------- */
+  .contact-line { color: var(--muted); }
+  .mail {
+    display: inline-flex; align-items: center; gap: 10px;
+    margin-top: 10px;
+    padding: 10px 18px;
+    border: 1px solid var(--cyan);
+    border-radius: 6px;
+    color: var(--cyan);
+    text-decoration: none;
+    font-weight: 500;
+    box-shadow: 0 0 18px rgba(95, 242, 255, 0.12);
+    transition: background .2s, color .2s, box-shadow .2s;
+    word-break: break-all;
+  }
+  .mail:hover, .mail:focus-visible {
+    background: var(--cyan);
+    color: var(--bg);
+    box-shadow: 0 0 28px rgba(95, 242, 255, 0.35);
+    outline: none;
+  }
+  .copy-btn {
+    margin-left: 10px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: color .2s, border-color .2s;
+  }
+  .copy-btn:hover { color: var(--pink); border-color: var(--pink); }
+
+  .comment { color: var(--muted); font-style: italic; }
+
+  /* ---------- footer ---------- */
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    padding: 0 16px 40px;
+  }
+  footer .jp { font-family: var(--jp); color: var(--pink); }
+
+  /* ---------- reveal animation ---------- */
+  .reveal { opacity: 0; transform: translateY(6px); transition: opacity .5s ease, transform .5s ease; }
+  .reveal.shown { opacity: 1; transform: none; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 640px) {
+    body { font-size: 14px; }
+    main { margin-top: 24px; }
+    .term { padding: 18px 16px 22px; }
+    .fetch { grid-template-columns: 1fr; gap: 14px; }
+    .fetch pre { font-size: 12px; }
+    .bar-right .hide-sm { display: none; }
+    .titlebar .title { padding-right: 0; font-size: 11px; }
+    .project a { grid-template-columns: 1fr auto; }
+    .perm { display: none; }
+    .bg-kana { opacity: .5; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-kana" aria-hidden="true">ミスティック・フォックス</div>
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <nav class="bar">
+    <div class="workspaces">
+      <a href="#about" class="active">1:about</a>
+      <a href="#projects">2:projects</a>
+      <a href="#contact">3:contact</a>
+      <a href="#top" class="jp" title="fox">4:狐</a>
+    </div>
+    <div class="bar-right">
+      <span class="hide-sm"><span class="accent">♥</span> zsh</span>
+      <span class="hide-sm"><span class="accent">⚡</span> 100%</span>
+      <span id="clock">--:--</span>
+    </div>
+  </nav>
+
+  <main id="top">
+    <div class="window">
+      <div class="titlebar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="title">mys7icfox@kitsune: ~</span>
+      </div>
+
+      <div class="term">
+
+        <!-- about -->
+        <section id="about">
+          <div class="prompt">
+            <span class="user">mys7icfox</span><span class="muted">@</span><span class="host">kitsune</span>
+            <span class="path">~</span> <span class="muted">$</span>
+            <span class="cmd" id="typed"></span><span class="cursor" id="first-cursor"></span>
+          </div>
+
+          <div class="output reveal" id="fetch-output">
+            <div class="fetch">
+<pre aria-hidden="true">
+    /\         /\
+   /  \_______/  \
+  /   ´       `   \
+ |   ( ◕ )  ( ◕ )  |
+  \       ▽       /
+   \_____________/
+     \  ~~~~~~  /
+      \________/
+</pre>
+              <div class="fetch-info">
+                <div class="head"><span class="u">mys7icfox</span>@<span class="h">kitsune</span></div>
+                <div class="rule">-----------------</div>
+                <div><span class="k">OS</span>: Arch-chan Linux x86_64</div>
+                <div><span class="k">Role</span>: Novice Software Engineer</div>
+                <div><span class="k">Shell</span>: zsh</div>
+                <div><span class="k">Projects</span>: 4</div>
+                <div><span class="k">Status</span>: <span style="color:var(--green)">● learning</span></div>
+                <div class="swatches" aria-hidden="true">
+                  <span style="background:#0b0a12"></span>
+                  <span style="background:#ff5f87"></span>
+                  <span style="background:#8cff9e"></span>
+                  <span style="background:#ffd76a"></span>
+                  <span style="background:#b48cff"></span>
+                  <span style="background:#ff5fa2"></span>
+                  <span style="background:#5ff2ff"></span>
+                  <span style="background:#d8d4ea"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="bio">
+              Hey there, I'm <strong style="color:var(--pink)">mys7icfox</strong>. I am a novice software engineer.
+              <span class="jp">はじめまして、よろしくお願いします！</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- projects -->
+        <section id="projects" class="reveal">
+          <div class="prompt">
+            <span class="user">mys7icfox</span><span class="muted">@</span><span class="host">kitsune</span>
+            <span class="path">~</span> <span class="muted">$</span>
+            <span class="cmd">ls -l ~/projects</span>
+          </div>
+          <div class="output">
+            <div class="ls-head">total 4 &nbsp;<span class="comment"># projects I work / have worked on</span></div>
+            <ul class="projects">
+              <li class="project">
+                <a href="https://github.com/MadMax1960/Femc-Reloaded-Project" target="_blank" rel="noopener">
+                  <span class="perm">drwxr-xr-x</span>
+                  <span>
+                    <span class="pname">Persona 3 Reload Femc Project</span>
+                    <span class="prepo">github.com/MadMax1960/Femc-Reloaded-Project</span>
+                  </span>
+                  <span class="arrow">→</span>
+                </a>
+              </li>
+              <li class="project">
+                <a href="https://github.com/mys7icfox/Evangelion2-EN-Patch" target="_blank" rel="noopener">
+                  <span class="perm">drwxr-xr-x</span>
+                  <span>
+                    <span class="pname">Shinseiki Evangelion 2 - Evangelions - English Translation Patch</span>
+                    <span class="prepo">github.com/mys7icfox/Evangelion2-EN-Patch</span>
+                  </span>
+                  <span class="arrow">→</span>
+                </a>
+              </li>
+              <li class="project">
+                <a href="https://github.com/allylavanda/jgrep" target="_blank" rel="noopener">
+                  <span class="perm">drwxr-xr-x</span>
+                  <span>
+                    <span class="pname">jgrep</span>
+                    <span class="prepo">github.com/allylavanda/jgrep</span>
+                  </span>
+                  <span class="arrow">→</span>
+                </a>
+              </li>
+              <li class="project">
+                <a href="https://github.com/allylavanda/Fireseal" target="_blank" rel="noopener">
+                  <span class="perm">drwxr-xr-x</span>
+                  <span>
+                    <span class="pname">Fireseal</span>
+                    <span class="prepo">github.com/allylavanda/Fireseal</span>
+                  </span>
+                  <span class="arrow">→</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- contact -->
+        <section id="contact" class="reveal">
+          <div class="prompt">
+            <span class="user">mys7icfox</span><span class="muted">@</span><span class="host">kitsune</span>
+            <span class="path">~</span> <span class="muted">$</span>
+            <span class="cmd">cat contact.txt</span>
+          </div>
+          <div class="output">
+            <div class="contact-line">If you ever have a need to contact me, you can contact me on...</div>
+            <a class="mail" href="mailto:allylavanda@aol.com">✉ allylavanda@aol.com</a>
+            <button class="copy-btn" id="copy" type="button">copy</button>
+          </div>
+
+          <div class="prompt">
+            <span class="user">mys7icfox</span><span class="muted">@</span><span class="host">kitsune</span>
+            <span class="path">~</span> <span class="muted">$</span>
+            <span class="cursor"></span>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <span class="jp">狐</span> &nbsp;mys7icfox · built with vim &amp; caffeine · hosted on GitHub Pages
+  </footer>
+
+<script>
+  // clock in the bar
+  const clock = document.getElementById('clock');
+  function tick() {
+    const d = new Date();
+    clock.textContent = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  tick(); setInterval(tick, 10000);
+
+  // typing animation for the first command
+  const typed = document.getElementById('typed');
+  const fetchOut = document.getElementById('fetch-output');
+  const cmd = 'neofetch && cat about.txt';
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (reduce) {
+    typed.textContent = cmd;
+    document.getElementById('first-cursor').remove();
+    fetchOut.classList.add('shown');
+  } else {
+    let i = 0;
+    (function type() {
+      if (i <= cmd.length) {
+        typed.textContent = cmd.slice(0, i++);
+        setTimeout(type, 45 + Math.random() * 50);
+      } else {
+        setTimeout(() => {
+          document.getElementById('first-cursor').remove();
+          fetchOut.classList.add('shown');
+        }, 250);
+      }
+    })();
+  }
+
+  // reveal sections as they scroll in
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('shown'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('section.reveal').forEach(el => io.observe(el));
+
+  // highlight active workspace on scroll
+  const links = document.querySelectorAll('.workspaces a');
+  const sections = ['about', 'projects', 'contact'].map(id => document.getElementById(id));
+  window.addEventListener('scroll', () => {
+    let current = 'about';
+    sections.forEach(s => { if (s.getBoundingClientRect().top < window.innerHeight * 0.4) current = s.id; });
+    links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + current));
+  }, { passive: true });
+
+  // copy email
+  document.getElementById('copy').addEventListener('click', async (e) => {
+    try {
+      await navigator.clipboard.writeText('allylavanda@aol.com');
+      e.target.textContent = 'copied ✓';
+    } catch { e.target.textContent = 'copy failed'; }
+    setTimeout(() => (e.target.textContent = 'copy'), 1600);
+  });
+</script>
+</body>
+</html>
