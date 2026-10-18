@@ -317,10 +317,7 @@
 
   <nav class="bar">
     <div class="workspaces">
-      <a href="#about" class="active">1:about</a>
-      <a href="#projects">2:projects</a>
-      <a href="#contact">3:contact</a>
-      <a href="#top" class="jp" title="fox">4:狐</a>
+      <a href="#top" class="active">1:about</a>
     </div>
     <div class="bar-right">
       <span class="hide-sm"><span class="accent">♥</span> zsh</span>
@@ -507,15 +504,6 @@
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('shown'); io.unobserve(e.target); } });
   }, { threshold: 0.15 });
   document.querySelectorAll('section.reveal').forEach(el => io.observe(el));
-
-  // highlight active workspace on scroll
-  const links = document.querySelectorAll('.workspaces a');
-  const sections = ['about', 'projects', 'contact'].map(id => document.getElementById(id));
-  window.addEventListener('scroll', () => {
-    let current = 'about';
-    sections.forEach(s => { if (s.getBoundingClientRect().top < window.innerHeight * 0.4) current = s.id; });
-    links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + current));
-  }, { passive: true });
 
   // copy email
   document.getElementById('copy').addEventListener('click', async (e) => {
