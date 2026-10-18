@@ -67,6 +67,20 @@
     white-space: nowrap;
   }
 
+  .bg-miku {
+    position: fixed; z-index: -1;
+    left: 0; bottom: 0;
+    height: min(92vh, 956px);
+    width: auto;
+    opacity: 0.6;
+    pointer-events: none; user-select: none;
+    filter: drop-shadow(0 0 24px rgba(255, 95, 162, 0.18));
+    -webkit-mask-image: linear-gradient(to right, #000 75%, transparent 100%);
+            mask-image: linear-gradient(to right, #000 75%, transparent 100%);
+  }
+  @media (max-width: 1200px) { .bg-miku { opacity: 0.35; } }
+  @media (max-width: 640px)  { .bg-miku { opacity: 0.18; height: 70vh; } }
+
   .scanlines {
     position: fixed; inset: 0; z-index: 50; pointer-events: none;
     background: repeating-linear-gradient(
@@ -313,6 +327,7 @@
 <body>
   <div class="bg-grid"></div>
   <div class="bg-kana" aria-hidden="true">ミスティック・フォックス</div>
+  <img class="bg-miku" src="miku.webp" alt="" aria-hidden="true">
   <div class="scanlines" aria-hidden="true"></div>
 
   <nav class="bar">
