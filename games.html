@@ -135,8 +135,9 @@
   .frame-wrap {
     margin-top: 12px; border: 1px solid var(--border); border-radius: 6px;
     overflow: hidden; background: #000; aspect-ratio: 4 / 3;
+    display: flex; justify-content: center; align-items: center;
   }
-  .frame-wrap iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .frame-wrap iframe { width: 100%; height: 100%; max-width: 100%; border: 0; display: block; }
 
   footer { text-align: center; color: var(--muted); font-size: 12px; padding: 0 16px 40px; }
   footer .jp { font-family: var(--jp); color: var(--pink); }
@@ -244,14 +245,16 @@
       name: "DOOM (1993)",
       icon: "👹",
       desc: "The original shareware episode, Knee-Deep in the Dead, via the Internet Archive. Click the game window to start.",
-      path: "https://archive.org/embed/DoomsharewareEpisode"
+      path: "https://archive.org/embed/DoomsharewareEpisode",
+      width: 640   // the emulator draws at a fixed 640px and sticks to the left, so shrink the frame to match
     },
     // {
     //   id: "my-game",
     //   name: "my game",
     //   icon: "🎮",
     //   desc: "What it is.",
-    //   path: "games/my-game/index.html"
+    //   path: "games/my-game/index.html",
+    //   width: 640   // optional: fixed frame width for games that draw at a set size
     // },
   ];
 
@@ -292,6 +295,7 @@
       document.getElementById('now-playing').textContent = '▶ now playing: ' + game.name;
       document.getElementById('win-title').textContent = 'mys7icfox@kitsune: ~/games/' + game.id;
       document.title = game.name + ' · mys7icfox';
+      frame.style.width = game.width ? game.width + 'px' : '';
       if (frame.getAttribute('src') !== game.path) frame.src = game.path;
       frame.focus();
     } else {
